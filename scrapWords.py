@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 import ssl
 import re
 import os.path
-
+import urllib.request
 # Ignore SSL certificate errors
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
@@ -33,9 +33,12 @@ CREATE TABLE IF NOT EXISTS wiki_data (
 ''')
 
 
+
 def url_crawl(url,pid):
     #try:
-    html = urllib.request.urlopen(url, context=ctx).read()	# html parser
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    req = urllib.request.Request(url, headers=headers)
+    html = urllib.request.urlopen(req).read()	# html parser
     soup = BeautifulSoup(html, 'html.parser')
     cur.execute('''UPDATE wiki_data SET cnc = ? WHERE url = ?''',(1,url,))
     cur.execute('''UPDATE wiki_data SET html = ? WHERE url = ?''',(str(soup),url,))
