@@ -71,7 +71,7 @@ def url_crawl(url,pid):
     sid_ = cur.fetchone()[0] #converts the cursor object to number
     print("min sid= ",sid_)
     get_next_url = cur.execute('''SELECT url FROM wiki_data WHERE sid = ?''',(sid_,)).fetchone()[0]
-    print("next url :  ",next_url)
+    print("next url :  ",get_next_url)
     conn.commit()
     print("*************************************************** sid  ================",sid)
     #time.sleep(3)
@@ -79,15 +79,13 @@ def url_crawl(url,pid):
     
 
 if __name__ == "__main__":
-    if os.path.isfile("wikiDB.sqlite") == True:
-        # If the db exists
-        cur.execute('''SELECT min(sid) FROM wiki_data WHERE cnc = ?''',(0,))
-        
-        sid_ = cur.fetchone()[0] #converts the cursor object to number
-        print("min sid= ",sid_)
-        get_next_url = cur.execute('''SELECT url FROM wiki_data WHERE sid = ?''',(sid_,)).fetchone()[0]
-        url_crawl(str(get_next_url),sid_-1)
-    else:
+    cur.execute(''' SELECT max(sid) FROM wiki_data''')
+    
+    sid_max = cur.fetchone()[0] #converts the cursor object to number
+    print("max sid = ",sid_max)
+    if sid_max == None:
+        sid_max = 0
+        print("none-----------")
         #For the first time :)
         url = "https://en.wiktionary.org/wiki/Wiktionary:All_Thesaurus_pages"			# The first url that is entered, required for ignition
         pid = 0    #parent id : 0
@@ -96,6 +94,16 @@ if __name__ == "__main__":
                             VALUES ( ?, ?, ?, ?, ? )''', ( 0,pid,sid, url,"", ) )
         # insert the cnc, pid, sid and url 
         url_crawl(url,1)
+    else:
+        # If the db exists
+        cur.execute('''SELECT min(sid) FROM wiki_data WHERE cnc = ?''',(0,))
+        
+        sid_ = cur.fetchone()[0] #converts the cursor object to number
+        print("min sid= ",sid_)
+        get_next_url = cur.execute('''SELECT url FROM wiki_data WHERE sid = ?''',(sid_,)).fetchone()[0]
+        url_crawl(str(get_next_url),sid_-1)
+
+        
 
 
 
