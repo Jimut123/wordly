@@ -35,50 +35,56 @@ CREATE TABLE IF NOT EXISTS wiki_data (
 
 
 def url_crawl(url,pid):
-    #try:
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    req = urllib.request.Request(url, headers=headers)
-    html = urllib.request.urlopen(req).read()	# html parser
-    soup = BeautifulSoup(html, 'html.parser')
-    cur.execute('''UPDATE wiki_data SET cnc = ? WHERE url = ?''',(1,url,))
-    cur.execute('''UPDATE wiki_data SET html = ? WHERE url = ?''',(str(soup),url,))
-    
-    print(url,pid)
-    #except:
-    #fucked up
-    #print("Ops something is wrong!")
-    test_li = re.findall(r'<li>(.+)</li>',str(soup))
-    #print(test_li) # it have all the list element
-    url_str = 'https://en.wiktionary.org'
-    cur.execute(''' SELECT max(sid) FROM wiki_data''')
-    
-    sid_max = cur.fetchone()[0] #converts the cursor object to number
-    print("max sid = ",sid_max)
-    if sid_max == None:
-        sid_max = 0
-    sid = sid_max + 1
-    for item_li in test_li:
-        find_first = item_li.find('href="')
-        cut_first = find_first+6
-        string_cut = item_li[cut_first:]
-        find_sec = string_cut.find('"')
-        get_url_part = string_cut[:find_sec]
-        #print(get_url_part)
-        next_url = url_str + get_url_part
-        #print(next_url)
-        cur.execute('''INSERT OR IGNORE INTO wiki_data (cnc, pid, sid, url, html)
-					VALUES ( ?, ?, ?, ?, ? )''', ( 0,pid,sid, next_url, "", ) )
-        sid += 1
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+        req = urllib.request.Request(url, headers=headers)
+        html = urllib.request.urlopen(req).read()	# html parser
+        soup = BeautifulSoup(html, 'html.parser')
+        cur.execute('''UPDATE wiki_data SET cnc = ? WHERE url = ?''',(1,url,))
+        cur.execute('''UPDATE wiki_data SET html = ? WHERE url = ?''',(str(soup),url,))
+        
+        print(url,pid)
+        test_li = re.findall(r'<li>(.+)</li>',str(soup))
+        #print(test_li) # it have all the list element
+        url_str = 'https://en.wiktionary.org'
+        cur.execute(''' SELECT max(sid) FROM wiki_data''')
+        
+        sid_max = cur.fetchone()[0] #converts the cursor object to number
+        print("max sid = ",sid_max)
+        if sid_max == None:
+            sid_max = 0
+        sid = sid_max + 1
+        for item_li in test_li:
+            find_first = item_li.find('href="')
+            cut_first = find_first+6
+            string_cut = item_li[cut_first:]
+            find_sec = string_cut.find('"')
+            get_url_part = string_cut[:find_sec]
+            #print(get_url_part)
+            next_url = url_str + get_url_part
+            #print(next_url)
+            cur.execute('''INSERT OR IGNORE INTO wiki_data (cnc, pid, sid, url, html)
+                        VALUES ( ?, ?, ?, ?, ? )''', ( 0,pid,sid, next_url, "", ) )
+            sid += 1
+        
+    except:
+        #fucked up
+        print("Ops something is wrong!")
+        print("url : ",url," BLOWN OFF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        #set the cnc
+        cur.execute('''UPDATE wiki_data SET cnc = ? WHERE url = ?''',(1,url,))
+        #continue
     cur.execute('''SELECT min(sid) FROM wiki_data WHERE cnc = ?''',(0,))
-    
+        
     sid_ = cur.fetchone()[0] #converts the cursor object to number
     print("min sid= ",sid_)
     get_next_url = cur.execute('''SELECT url FROM wiki_data WHERE sid = ?''',(sid_,)).fetchone()[0]
     print("next url :  ",get_next_url)
     conn.commit()
-    print("*************************************************** sid  ================",sid)
+    #print("*************************************************** sid  ================",sid)
     #time.sleep(3)
     url_crawl(str(get_next_url),sid_-1)
+    
     
 
 if __name__ == "__main__":
