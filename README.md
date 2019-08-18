@@ -1,4 +1,7 @@
-# wiki-leaks:  The Wiki Scraper
-Old source code included! Needs to be changed!
-You are requested to watch!
+# wordly
 
+This repo will have three parts:
+
+* ALgorithm
+* Visualisation Tool
+* Data Scrapper
