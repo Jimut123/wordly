@@ -2,6 +2,6 @@
 
 This repo will have three parts:
 
-* ALgorithm
+* Algorithm
 * Visualisation Tool
 * Data Scrapper
